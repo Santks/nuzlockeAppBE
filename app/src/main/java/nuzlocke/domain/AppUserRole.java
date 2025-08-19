@@ -1,5 +1,6 @@
 package nuzlocke.domain;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import jakarta.persistence.Entity;
@@ -24,7 +25,7 @@ public class AppUserRole {
     private String roleDesc;
 
     @OneToMany(mappedBy = "appUserRole")
-    private Set<AppUser> users;
+    private Set<AppUser> users = new HashSet<>();
 
     public Long getUserRoleId() {
         return userRoleId;
@@ -62,8 +63,7 @@ public class AppUserRole {
 
     }
 
-    public AppUserRole(Long userRoleId, String userRoleName, String roleDesc) {
-        this.userRoleId = userRoleId;
+    public AppUserRole(String userRoleName, String roleDesc) {
         this.userRoleName = userRoleName;
         this.roleDesc = roleDesc;
     }
