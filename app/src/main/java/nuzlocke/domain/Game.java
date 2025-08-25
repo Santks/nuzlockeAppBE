@@ -1,9 +1,10 @@
 package nuzlocke.domain;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -28,18 +29,18 @@ public class Game {
     @NotNull
     private String description;
 
-    @NotBlank
+    @NotNull
     private int gameGeneration;
 
-    @OneToMany(mappedBy = "game")
-    @Size(min = 1, max = 3)
-    private Set<Region> regions = new HashSet<>();
+    @OneToMany(mappedBy = "game", fetch = FetchType.EAGER)
+    @Size(max = 3)
+    private List<Region> regions = new ArrayList<>();
 
-    public Set<Region> getRegions() {
+    public List<Region> getRegions() {
         return regions;
     }
 
-    public void setRegions(Set<Region> regions) {
+    public void setRegions(List<Region> regions) {
         this.regions = regions;
     }
 
@@ -96,7 +97,7 @@ public class Game {
     @Override
     public String toString() {
         return "Game [gameId=" + gameId + ", title=" + title + ", developer=" + developer + ", description="
-                + description + ", gameGeneration=" + gameGeneration + ", regions=" + regions + "]";
+                + description + ", gameGeneration=" + gameGeneration + "]";
     }
 
 }

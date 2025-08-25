@@ -5,6 +5,7 @@ import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,10 +25,10 @@ public class Route {
     private String routeName;
 
     @ManyToOne
-    @JoinColumn(name = "regionId")
+    @JoinColumn(name = "region_id")
     private Region region;
 
-    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Trainer> trainers = new ArrayList<>();
 
     public Long getRouteId() {
@@ -73,8 +74,7 @@ public class Route {
 
     @Override
     public String toString() {
-        return "Route [routeId=" + routeId + ", routeName=" + routeName + ", region=" + region + ", trainers="
-                + trainers + "]";
+        return "Route [routeId=" + routeId + ", routeName=" + routeName + ", region=" + region + "]";
     }
 
 }

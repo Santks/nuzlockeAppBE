@@ -3,13 +3,15 @@ package nuzlocke.domain;
 import java.util.List;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,7 +23,7 @@ public class PokemonMoveSet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long moveSetId;
 
-    @NotBlank
+    @NotNull
     @Min(1)
     @Max(100)
     private int pokemonLevel;
@@ -30,12 +32,14 @@ public class PokemonMoveSet {
     @Size(min = 1, max = 4)
     private List<String> moves;
 
-    @NotEmpty
     private String item;
 
     @ManyToOne
-    @JoinColumn(name = "pokemonId")
+    @JoinColumn(name = "pokemon_id")
     private Pokemon pokemon;
+
+    @Enumerated(EnumType.STRING)
+    private Nature nature;
 
     public Long getMoveSetId() {
         return moveSetId;
@@ -77,19 +81,29 @@ public class PokemonMoveSet {
         this.pokemon = pokemon;
     }
 
+    public Nature getNature() {
+        return nature;
+    }
+
+    public void setNature(Nature nature) {
+        this.nature = nature;
+    }
+
     protected PokemonMoveSet() {
     }
 
-    public PokemonMoveSet(int pokemonLevel, List<String> moves, String item) {
+    public PokemonMoveSet(int pokemonLevel, List<String> moves, String item, Pokemon pokemon, Nature nature) {
         this.pokemonLevel = pokemonLevel;
         this.moves = moves;
         this.item = item;
+        this.pokemon = pokemon;
+        this.nature = nature;
     }
 
     @Override
     public String toString() {
         return "PokemonMoveSet [moveSetId=" + moveSetId + ", pokemonLevel=" + pokemonLevel + ", moves=" + moves
-                + ", item=" + item + ", pokemon=" + pokemon + "]";
+                + ", item=" + item + ", pokemon=" + pokemon + ", nature=" + nature + "]";
     }
 
 }

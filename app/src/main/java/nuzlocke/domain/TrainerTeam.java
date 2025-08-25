@@ -3,13 +3,15 @@ package nuzlocke.domain;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
 @Entity
 public class TrainerTeam {
@@ -18,11 +20,13 @@ public class TrainerTeam {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long trainerTeamId;
 
-    @NotBlank
+    @NotEmpty
+    @Size(min = 1, max = 6)
+    @OneToMany(mappedBy = "trainerTeam")
     private List<Pokemon> pokemons = new ArrayList<>();
 
     @ManyToOne
-    @Column(name = "trainerId")
+    @JoinColumn(name = "trainer_id")
     private Trainer trainer;
 
     public Long getTrainerTeamId() {

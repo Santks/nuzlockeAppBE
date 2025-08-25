@@ -4,11 +4,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
@@ -27,7 +27,7 @@ public class Trainer {
     private Set<TrainerTeam> trainerTeams = new HashSet<>();
 
     @ManyToOne
-    @Column(name = "routeId")
+    @JoinColumn(name = "route_id")
     private Route route;
 
     public Long getTrainerId() {
@@ -73,8 +73,7 @@ public class Trainer {
 
     @Override
     public String toString() {
-        return "Trainer [trainerId=" + trainerId + ", trainerName=" + trainerName + ", trainerTeams=" + trainerTeams
-                + ", route=" + route + "]";
+        return "Trainer [trainerId=" + trainerId + ", trainerName=" + trainerName + ", route=" + route + "]";
     }
 
 }

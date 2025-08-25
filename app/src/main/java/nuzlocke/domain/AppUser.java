@@ -27,7 +27,7 @@ public class AppUser {
     private String emailString;
 
     @ManyToOne
-    @JoinColumn(name = "userRoleId")
+    @JoinColumn(name = "userRole_id")
     private AppUserRole appUserRole;
 
     public Long getAppUserId() {
