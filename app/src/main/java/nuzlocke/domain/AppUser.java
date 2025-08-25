@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -26,6 +27,7 @@ public class AppUser {
     private String emailString;
 
     @ManyToOne
+    @JoinColumn(name = "userRole_id")
     private AppUserRole appUserRole;
 
     public Long getAppUserId() {
@@ -68,13 +70,13 @@ public class AppUser {
         this.appUserRole = appUserRole;
     }
 
-    public AppUser() {
+    protected AppUser() {
 
     }
 
-    public AppUser(Long appUserId, String username, String emailString, AppUserRole appUserRole) {
-        this.appUserId = appUserId;
+    public AppUser(String username, String passwordHash, String emailString, AppUserRole appUserRole) {
         this.username = username;
+        this.passwordHash = passwordHash;
         this.emailString = emailString;
         this.appUserRole = appUserRole;
     }
