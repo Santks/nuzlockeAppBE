@@ -1,21 +1,21 @@
-package nuzlocke.web;
+package nuzlocke.config;
 
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.stereotype.Service;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-@Configuration
+@Service
 @EnableWebSecurity
-@Profile("dev")
-public class WebSecurityConfig {
+@Profile("prod")
+public class WebSecurityConfigProd {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -23,11 +23,7 @@ public class WebSecurityConfig {
                 .cors((cors) -> cors.configurationSource(corsConfigSrc()))
                 .csrf((csrf) -> csrf.disable())
                 .authorizeHttpRequests((reqs) -> reqs
-                        .requestMatchers("/ping", "/games", "/error").permitAll()
-                        .anyRequest().authenticated())
-                .formLogin((form) -> form
-                        .permitAll())
-                .logout((logout) -> logout.permitAll());
+                        .anyRequest().authenticated());
 
         return http.build();
     }
@@ -44,7 +40,5 @@ public class WebSecurityConfig {
         UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
         src.registerCorsConfiguration("/**", corsConfig);
         return src;
-
     }
-
 }

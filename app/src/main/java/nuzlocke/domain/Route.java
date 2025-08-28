@@ -3,6 +3,8 @@ package nuzlocke.domain;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -26,6 +28,7 @@ public class Route {
 
     @ManyToOne
     @JoinColumn(name = "region_id")
+    @JsonIgnore
     private Region region;
 
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -74,7 +77,7 @@ public class Route {
 
     @Override
     public String toString() {
-        return "Route [routeId=" + routeId + ", routeName=" + routeName + ", region=" + region + "]";
+        return "Route [routeId=" + routeId + ", routeName=" + routeName + "]";
     }
 
 }

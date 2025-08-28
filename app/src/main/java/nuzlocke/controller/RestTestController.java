@@ -1,4 +1,4 @@
-package nuzlocke.web;
+package nuzlocke.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

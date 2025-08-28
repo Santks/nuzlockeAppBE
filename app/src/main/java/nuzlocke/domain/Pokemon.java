@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -39,6 +41,7 @@ public class Pokemon {
 
     @ManyToOne
     @JoinColumn(name = "trainerTeam_id")
+    @JsonIgnore
     private TrainerTeam trainerTeam;
 
     @OneToMany(mappedBy = "pokemon")
@@ -107,11 +110,11 @@ public class Pokemon {
         this.pokemonName = pokemonName;
     }
 
-    public Pokemon(String pokemonName, List<String> abilities, TrainerTeam trainerTeam, Set<PokemonMoveSet> moveSets) {
+    public Pokemon(String pokemonName, List<String> abilities, Set<PokemonMoveSet> moveSets, TrainerTeam trainerTeam) {
         this.pokemonName = pokemonName;
         this.abilities = abilities;
-        this.trainerTeam = trainerTeam;
         this.moveSets = moveSets;
+        this.trainerTeam = trainerTeam;
     }
 
     public Pokemon(String pokemonName, List<String> abilities, Set<PokemonMoveSet> moveSets) {
@@ -120,17 +123,18 @@ public class Pokemon {
         this.moveSets = moveSets;
     }
 
-    public Pokemon(String pokemonName, List<String> abilities, Type type1, Type type2) {
+    public Pokemon(String pokemonName, List<String> abilities, Type type1, Type type2, TrainerTeam trainerTeam) {
         this.pokemonName = pokemonName;
         this.abilities = abilities;
         this.type1 = type1;
         this.type2 = type2;
+        this.trainerTeam = trainerTeam;
     }
 
     @Override
     public String toString() {
         return "Pokemon [pokemonId=" + pokemonId + ", pokemonName=" + pokemonName + ", abilities=" + abilities
-                + ", type1=" + type1 + ", type2=" + type2 + ", trainerTeam=" + trainerTeam + "]";
+                + ", type1=" + type1 + ", type2=" + type2 + "]";
     }
 
 }

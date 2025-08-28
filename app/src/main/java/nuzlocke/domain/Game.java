@@ -33,7 +33,7 @@ public class Game {
     private int gameGeneration;
 
     @OneToMany(mappedBy = "game", fetch = FetchType.EAGER)
-    @Size(max = 3)
+    @Size(max = 2)
     private List<Region> regions = new ArrayList<>();
 
     public List<Region> getRegions() {
