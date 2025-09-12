@@ -3,6 +3,8 @@ package nuzlocke.domain;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,6 +30,7 @@ public class Trainer {
 
     @ManyToOne
     @JoinColumn(name = "route_id")
+    @JsonIgnore
     private Route route;
 
     public Long getTrainerId() {

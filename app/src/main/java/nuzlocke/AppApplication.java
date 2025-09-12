@@ -24,7 +24,6 @@ import nuzlocke.domain.Trainer;
 import nuzlocke.domain.TrainerTeam;
 import nuzlocke.domain.Type;
 import nuzlocke.repository.AppUserRepository;
-import nuzlocke.repository.AppUserRoleRepository;
 import nuzlocke.repository.GameRepository;
 import nuzlocke.repository.PokemonMoveSetRepository;
 import nuzlocke.repository.PokemonRepository;
@@ -45,21 +44,19 @@ public class AppApplication {
 
 	@Profile("dev")
 	@Bean
-	public CommandLineRunner appTesting(AppUserRepository appUserRepo, AppUserRoleRepository appUserRoleRepository,
+	public CommandLineRunner appTesting(AppUserRepository appUserRepo,
 			GameRepository gameRepo, RegionRepository regionRepo, RouteRepository routeRepo,
 			TrainerRepository trainerRepo, TrainerTeamRepository ttRepo, PokemonRepository pokemonRepo,
 			PokemonMoveSetRepository moveSetRepo) {
 		return (_args) -> {
 			log.info("Save some test data");
 
-			AppUserRole userRole = new AppUserRole("user", "Basic permissions");
-			AppUserRole adminRole = new AppUserRole("admin", "Admin permissions ");
-
-			appUserRoleRepository.save(userRole);
-			appUserRoleRepository.save(adminRole);
-
-			AppUser user = new AppUser("user", "ee11cbb19052e40b07aac0ca060c23ee", "user@testing.com", userRole);
-			AppUser admin = new AppUser("admin", "21232f297a57a5a743894a0e4a801fc3", "admin@testing.com", userRole);
+			AppUser user = new AppUser("user", "$2a$12$/2Z3T6HYbtIoyVgtouPFMO8BMo5EpASfWRrWBQCQhOv63r5vyMW8O",
+					"user@testing.com",
+					AppUserRole.ROLE_USER, "saltyy");
+			AppUser admin = new AppUser("admin", "$2a$12$YzwjWastVXpIc7vDg211cuMamujIedfZ0DqEULDTu35rYUgXLW1SS",
+					"admin@testing.com",
+					AppUserRole.ROLE_ADMIN, "salt");
 
 			appUserRepo.save(user);
 			appUserRepo.save(admin);
@@ -97,34 +94,57 @@ public class AppApplication {
 			Trainer logan = new Trainer("Youngster Logan", route202);
 			trainerRepo.save(logan);
 
-			Pokemon turtwig = new Pokemon("Turtwig", List.of("Overgrow", "Shell Armor"), Type.GRASS, null);
+			TrainerTeam barry1 = new TrainerTeam(barry);
+			ttRepo.save(barry1);
+
+			TrainerTeam dawn1 = new TrainerTeam(dawn);
+			ttRepo.save(dawn1);
+
+			TrainerTeam lucas1 = new TrainerTeam(lucas);
+			ttRepo.save(lucas1);
+
+			TrainerTeam lassNatalie = new TrainerTeam(natalie);
+			ttRepo.save(lassNatalie);
+
+			TrainerTeam youngsterTristan = new TrainerTeam(tristan);
+			ttRepo.save(youngsterTristan);
+
+			TrainerTeam youngsterLogan = new TrainerTeam(logan);
+			ttRepo.save(youngsterLogan);
+
+			Pokemon turtwig = new Pokemon("Turtwig", List.of("Overgrow", "Shell Armor"), Type.GRASS, null, dawn1);
 			pokemonRepo.save(turtwig);
 
-			Pokemon piplup = new Pokemon("Piplup", List.of("Torrent", "Defiant"), Type.WATER, null);
+			Pokemon piplup = new Pokemon("Piplup", List.of("Torrent", "Defiant"), Type.WATER, null, barry1);
 			pokemonRepo.save(piplup);
 
-			Pokemon chimchar = new Pokemon("Chimchar", List.of("Blaze", "Iron Fist"), Type.FIRE, null);
+			Pokemon chimchar = new Pokemon("Chimchar", List.of("Blaze", "Iron Fist"), Type.FIRE, null, lucas1);
 			pokemonRepo.save(chimchar);
 
-			Pokemon sentret = new Pokemon("Sentret", List.of("Run Away", "Keen Eye", "Frisk"), Type.NORMAL, null);
+			Pokemon sentret = new Pokemon("Sentret", List.of("Run Away", "Keen Eye", "Frisk"), Type.NORMAL, null,
+					lassNatalie);
 			pokemonRepo.save(sentret);
 
-			Pokemon bidoof = new Pokemon("Bidoof", List.of("Simple", "Unaware"), Type.NORMAL, null);
+			Pokemon bidoof = new Pokemon("Bidoof", List.of("Simple", "Unaware"), Type.NORMAL, null, lassNatalie);
 			pokemonRepo.save(bidoof);
 
-			Pokemon hoothoot = new Pokemon("Hoothoot", List.of("Tinted Lens", "Insomnia"), Type.NORMAL, Type.FLYING);
+			Pokemon hoothoot = new Pokemon("Hoothoot", List.of("Tinted Lens", "Insomnia"), Type.NORMAL, Type.FLYING,
+					youngsterTristan);
 			pokemonRepo.save(hoothoot);
 
-			Pokemon starly = new Pokemon("Starly", List.of("Keen Eye", "Reckless"), Type.NORMAL, Type.FLYING);
+			Pokemon starly = new Pokemon("Starly", List.of("Keen Eye", "Reckless"), Type.NORMAL, Type.FLYING,
+					youngsterTristan);
 			pokemonRepo.save(starly);
 
-			Pokemon growlithe = new Pokemon("Growlithe", List.of("Intimidate", "Flash Fire"), Type.FIRE, null);
+			Pokemon growlithe = new Pokemon("Growlithe", List.of("Intimidate", "Flash Fire"), Type.FIRE, null,
+					youngsterLogan);
 			pokemonRepo.save(growlithe);
 
-			Pokemon burmy = new Pokemon("Turtwig", List.of("Overgrow", "Shell Armor"), Type.BUG, null);
+			Pokemon burmy = new Pokemon("Turtwig", List.of("Overgrow", "Shell Armor"), Type.BUG, null, youngsterLogan);
 			pokemonRepo.save(burmy);
 
-			Pokemon zigzagoon = new Pokemon("Zigzagoon", List.of("Pickup", "Gluttony"), Type.NORMAL, null);
+			Pokemon zigzagoon = new Pokemon("Zigzagoon", List.of("Pickup", "Gluttony"), Type.NORMAL, null,
+					youngsterLogan);
 			pokemonRepo.save(zigzagoon);
 
 			PokemonMoveSet piplu = new PokemonMoveSet(5, List.of("Pound", "Growl", "Bubble"), null, piplup,
@@ -167,34 +187,31 @@ public class AppApplication {
 					zigzagoon, Nature.Adamant);
 			moveSetRepo.save(zigzag);
 
-			TrainerTeam barry1 = new TrainerTeam(barry, List.of(piplup));
-			ttRepo.save(barry1);
-
-			TrainerTeam dawn1 = new TrainerTeam(dawn, List.of(turtwig));
-			ttRepo.save(dawn1);
-
-			TrainerTeam lucas1 = new TrainerTeam(lucas, List.of(chimchar));
-			ttRepo.save(lucas1);
-
-			TrainerTeam lassNatalie = new TrainerTeam(natalie, List.of(sentret, bidoof));
-			ttRepo.save(lassNatalie);
-
-			TrainerTeam youngsterTristan = new TrainerTeam(tristan, List.of(hoothoot, starly));
-			ttRepo.save(youngsterTristan);
-
-			TrainerTeam youngsterLogan = new TrainerTeam(logan, List.of(growlithe, burmy, zigzagoon));
-			ttRepo.save(youngsterLogan);
-
 			log.info("Fetch all users");
 			for (AppUser users : appUserRepo.findAll()) {
 				log.info(users.toString());
-
-				log.info("fetch games");
-				for (Game games : gameRepo.findAll()) {
-					log.info(games.toString());
-				}
-
 			}
+
+			log.info("fetch games");
+			for (Game games : gameRepo.findAll()) {
+				log.info(games.toString());
+			}
+
+			log.info("Fetch trainer teams");
+			for (TrainerTeam teams : ttRepo.findAll()) {
+				log.info(teams.toString());
+			}
+
+			log.info("fetch pokemon");
+			for (Pokemon pokemons : pokemonRepo.findAll()) {
+				log.info(pokemons.toString());
+			}
+
+			log.info("fetch movesets");
+			for (PokemonMoveSet movesets : moveSetRepo.findAll()) {
+				log.info(movesets.toString());
+			}
+
 		};
 	}
 

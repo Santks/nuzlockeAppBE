@@ -1,4 +1,4 @@
-package nuzlocke.web;
+package nuzlocke.config;
 
 import java.util.List;
 
@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Service;
 import org.springframework.web.cors.CorsConfiguration;
@@ -23,10 +25,7 @@ public class WebSecurityConfigProd {
                 .cors((cors) -> cors.configurationSource(corsConfigSrc()))
                 .csrf((csrf) -> csrf.disable())
                 .authorizeHttpRequests((reqs) -> reqs
-                        .anyRequest().authenticated())
-                .formLogin((form) -> form
-                        .permitAll())
-                .logout((logout) -> logout.permitAll());
+                        .anyRequest().authenticated());
 
         return http.build();
     }
@@ -43,5 +42,10 @@ public class WebSecurityConfigProd {
         UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
         src.registerCorsConfiguration("/**", corsConfig);
         return src;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

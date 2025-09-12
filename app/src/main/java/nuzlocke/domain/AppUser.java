@@ -1,11 +1,12 @@
 package nuzlocke.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -14,21 +15,29 @@ public class AppUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "User_id", nullable = false)
     private Long appUserId;
 
     @NotBlank
+    @Column(name = "Username", unique = true, nullable = false)
     private String username;
 
     @NotBlank
+    @Column(name = "Password", nullable = false)
     private String passwordHash;
 
     @NotBlank
     @Email
+    @Column(name = "Email", unique = true, nullable = false)
     private String emailString;
 
-    @ManyToOne
-    @JoinColumn(name = "userRole_id")
-    private AppUserRole appUserRole;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "User_Role", nullable = false)
+    private AppUserRole userRole;
+
+    @NotBlank
+    @Column(name = "Salt", unique = true, nullable = false)
+    private String salt;
 
     public Long getAppUserId() {
         return appUserId;
@@ -62,12 +71,20 @@ public class AppUser {
         this.emailString = emailString;
     }
 
-    public AppUserRole getAppUserRole() {
-        return appUserRole;
+    public AppUserRole getUserRole() {
+        return userRole;
     }
 
-    public void setAppUserRole(AppUserRole appUserRole) {
-        this.appUserRole = appUserRole;
+    public void setUserRole(AppUserRole userRole) {
+        this.userRole = userRole;
+    }
+
+    public String getSalt() {
+        return salt;
+    }
+
+    public void setSalt(String salt) {
+        this.salt = salt;
     }
 
     protected AppUser() {
@@ -78,13 +95,22 @@ public class AppUser {
         this.username = username;
         this.passwordHash = passwordHash;
         this.emailString = emailString;
-        this.appUserRole = appUserRole;
+        this.userRole = appUserRole;
+    }
+
+    // ONLY FOR H2 DB + CommandLineRUnner TESTING
+    public AppUser(String username, String passwordHash, String emailString, AppUserRole appUserRole, String salt) {
+        this.username = username;
+        this.passwordHash = passwordHash;
+        this.emailString = emailString;
+        this.userRole = appUserRole;
+        this.salt = salt;
     }
 
     @Override
     public String toString() {
         return "AppUser [appUserId=" + appUserId + ", username=" + username + ", emailString=" + emailString
-                + ", appUserRole=" + appUserRole + "]";
+                + ", appUserRole=" + userRole + "salt" + salt + "]";
     }
 
 }
