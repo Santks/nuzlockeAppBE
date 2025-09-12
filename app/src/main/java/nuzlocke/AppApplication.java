@@ -51,9 +51,11 @@ public class AppApplication {
 		return (_args) -> {
 			log.info("Save some test data");
 
-			AppUser user = new AppUser("user", "ee11cbb19052e40b07aac0ca060c23ee", "user@testing.com",
+			AppUser user = new AppUser("user", "$2a$12$/2Z3T6HYbtIoyVgtouPFMO8BMo5EpASfWRrWBQCQhOv63r5vyMW8O",
+					"user@testing.com",
 					AppUserRole.ROLE_USER, "saltyy");
-			AppUser admin = new AppUser("admin", "21232f297a57a5a743894a0e4a801fc3", "admin@testing.com",
+			AppUser admin = new AppUser("admin", "$2a$12$YzwjWastVXpIc7vDg211cuMamujIedfZ0DqEULDTu35rYUgXLW1SS",
+					"admin@testing.com",
 					AppUserRole.ROLE_ADMIN, "salt");
 
 			appUserRepo.save(user);
