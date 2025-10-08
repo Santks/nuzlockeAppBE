@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -23,7 +24,7 @@ public class TrainerTeam {
     private Long trainerTeamId;
 
     @Size(max = 6)
-    @OneToMany(mappedBy = "trainerTeam", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "trainerTeam", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Pokemon> pokemons = new ArrayList<>();
 
     @ManyToOne

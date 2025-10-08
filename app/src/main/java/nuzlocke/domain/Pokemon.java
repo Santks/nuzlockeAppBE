@@ -6,6 +6,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -44,7 +45,7 @@ public class Pokemon {
     @JsonIgnore
     private TrainerTeam trainerTeam;
 
-    @OneToMany(mappedBy = "pokemon")
+    @OneToMany(mappedBy = "pokemon", cascade = CascadeType.ALL)
     private Set<PokemonMoveSet> moveSets = new HashSet<>();
 
     public Long getPokemonId() {

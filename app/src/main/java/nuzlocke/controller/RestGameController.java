@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import nuzlocke.domain.Game;
+import nuzlocke.domain.Route;
 import nuzlocke.service.GameService;
 
 @RestController
@@ -46,18 +48,27 @@ public class RestGameController {
         return ResponseEntity.ok(existingGame);
     }
 
+    @GetMapping("/{gameId}/routes")
+    public ResponseEntity<List<Route>> getGameRoutes(@PathVariable Long gameId) {
+        log.info("fetch routes for game with id: " + gameId);
+        return ResponseEntity.ok((List<Route>) gameService.getAllGameRoutes(gameId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Game> newGame(@RequestBody Game newGame) {
         log.info("Adding new game: " + newGame.getTitle());
         return ResponseEntity.status(HttpStatus.CREATED).body(gameService.createNewGame(newGame));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{gameId}")
     public ResponseEntity<Game> editGame(@PathVariable Long gameId, @RequestBody Game existingGame) {
         log.info("Saving changes to game with id: " + gameId);
         return ResponseEntity.ok(gameService.editGame(gameId, existingGame));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{gameId}")
     public ResponseEntity<Void> deleteGame(@PathVariable Long gameId) {
         log.info("Deleting game with id: " + gameId);

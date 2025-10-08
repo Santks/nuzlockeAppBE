@@ -26,6 +26,7 @@ public class Region {
     @NotBlank
     private String regionName;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "region", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Route> routes = new ArrayList<>();
 

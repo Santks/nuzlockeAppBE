@@ -46,7 +46,8 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions((frameOpts) -> frameOpts.disable()))
                 .authorizeHttpRequests((reqs) -> reqs
-                        .requestMatchers("/ping", "/games", "/error", "/h2-console/**", "/auth/register",
+                        .requestMatchers("/ping", "/games", "/regions", "/routes", "/error", "/h2-console/**",
+                                "/auth/register",
                                 "/auth/signin")
                         .permitAll()
                         .anyRequest().authenticated())
