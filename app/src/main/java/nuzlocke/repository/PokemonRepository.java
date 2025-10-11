@@ -4,5 +4,5 @@ import org.springframework.data.repository.CrudRepository;
 import nuzlocke.domain.Pokemon;
 
 public interface PokemonRepository extends CrudRepository<Pokemon, Long> {
-
+    Pokemon findByPokemonNameIgnoreCase(String pokemonName);
 }

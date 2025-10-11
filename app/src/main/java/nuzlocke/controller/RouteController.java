@@ -22,14 +22,14 @@ import nuzlocke.service.RouteService;
 
 @RestController
 @RequestMapping("/routes")
-public class RestRouteController {
+public class RouteController {
 
-    private static final Logger log = LoggerFactory.getLogger(RestRouteController.class);
+    private static final Logger log = LoggerFactory.getLogger(RouteController.class);
 
     private final RouteService routeService;
 
     @Autowired
-    public RestRouteController(RouteService routeService) {
+    public RouteController(RouteService routeService) {
         this.routeService = routeService;
     }
 

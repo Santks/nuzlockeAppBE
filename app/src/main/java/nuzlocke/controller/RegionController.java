@@ -22,14 +22,14 @@ import nuzlocke.service.RegionService;
 
 @RestController
 @RequestMapping("/regions")
-public class RestRegionController {
+public class RegionController {
 
-    private static final Logger log = LoggerFactory.getLogger(RestRegionController.class);
+    private static final Logger log = LoggerFactory.getLogger(RegionController.class);
 
     private final RegionService regionService;
 
     @Autowired
-    public RestRegionController(RegionService regionService) {
+    public RegionController(RegionService regionService) {
         this.regionService = regionService;
     }
 

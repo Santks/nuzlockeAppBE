@@ -17,14 +17,14 @@ import nuzlocke.service.AppUserService;
 
 @RestController
 @RequestMapping("/auth")
-public class RestUserController {
+public class UserController {
 
-    private static final Logger log = LoggerFactory.getLogger(RestUserController.class);
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     private final AppUserService appUserService;
 
     @Autowired
-    public RestUserController(AppUserService appUserService) {
+    public UserController(AppUserService appUserService) {
         this.appUserService = appUserService;
     }
 

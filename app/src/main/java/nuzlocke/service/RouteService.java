@@ -11,6 +11,8 @@ import nuzlocke.repository.RouteRepository;
 @Service
 public class RouteService {
 
+    // TODO: GET TRAINERS BY ROUTE
+
     private final RouteRepository routeRepo;
 
     @Autowired

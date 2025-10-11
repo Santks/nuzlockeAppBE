@@ -24,14 +24,14 @@ import nuzlocke.service.GameService;
 
 @RestController
 @RequestMapping("/games")
-public class RestGameController {
+public class GameController {
 
-    private static final Logger log = LoggerFactory.getLogger(RestGameController.class);
+    private static final Logger log = LoggerFactory.getLogger(GameController.class);
 
     private final GameService gameService;
 
     @Autowired
-    public RestGameController(GameService gameService) {
+    public GameController(GameService gameService) {
         this.gameService = gameService;
     }
 
