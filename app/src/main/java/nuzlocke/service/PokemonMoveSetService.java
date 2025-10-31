@@ -3,12 +3,16 @@ package nuzlocke.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.EntityNotFoundException;
+import nuzlocke.domain.IdempotencyRecord;
 import nuzlocke.domain.PokemonMoveSet;
 import nuzlocke.repository.PokemonMoveSetRepository;
 
@@ -16,22 +20,29 @@ import nuzlocke.repository.PokemonMoveSetRepository;
 public class PokemonMoveSetService {
 
     private final PokemonMoveSetRepository moveSetRepo;
+    private final IdempotencyRecordService idempotencyService;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    public PokemonMoveSetService(PokemonMoveSetRepository moveSetRepo) {
+    public PokemonMoveSetService(PokemonMoveSetRepository moveSetRepo, IdempotencyRecordService idempotencyService,
+            ObjectMapper objectMapper) {
         this.moveSetRepo = moveSetRepo;
+        this.idempotencyService = idempotencyService;
+        this.objectMapper = objectMapper;
     }
 
     public Iterable<PokemonMoveSet> getAllMoveSets() {
         return moveSetRepo.findAll();
     }
 
-    public PokemonMoveSet findMovesetById(@PathVariable Long moveSetId) {
+    public PokemonMoveSet findMovesetById(Long moveSetId) {
         return moveSetRepo.findById(moveSetId)
                 .orElseThrow(() -> new EntityNotFoundException("No move set found with id: " + moveSetId));
     }
 
-    public PokemonMoveSet createNewMoveSet(@RequestBody PokemonMoveSet newMoveSet) {
+    @Transactional
+    public PokemonMoveSet createNewMoveSet(String key, PokemonMoveSet newMoveSet)
+            throws JsonMappingException, JsonProcessingException {
         List<PokemonMoveSet> existingMoveSet = moveSetRepo
                 .findByPokemon_PokemonName(newMoveSet.getPokemon().getPokemonName());
         for (PokemonMoveSet existing : existingMoveSet) {
@@ -41,11 +52,21 @@ public class PokemonMoveSetService {
                 throw new IllegalArgumentException("This pokemon already has this move set.");
             }
         }
-        return moveSetRepo.save(newMoveSet);
+        IdempotencyRecord existingRecord = idempotencyService.fetchOrReserve(key);
+        if (existingRecord != null && existingRecord.getResponse() != null) {
+            return objectMapper.readValue(existingRecord.getResponse(), PokemonMoveSet.class);
+        }
+
+        PokemonMoveSet createdMoveSet = moveSetRepo.save(newMoveSet);
+        if (key != null && !key.isBlank()) {
+            idempotencyService.saveRecord(key, objectMapper.writeValueAsString(createdMoveSet),
+                    HttpStatus.CREATED.value());
+        }
+        return createdMoveSet;
     }
 
     @Transactional
-    public PokemonMoveSet editMoveSet(@PathVariable Long moveSetId, @RequestBody PokemonMoveSet editedMoveSet) {
+    public PokemonMoveSet editMoveSet(Long moveSetId, PokemonMoveSet editedMoveSet) {
         return moveSetRepo.findById(moveSetId).map(existingMoveSet -> {
             existingMoveSet.setItem(editedMoveSet.getItem());
             existingMoveSet.setMoves(editedMoveSet.getMoves());
@@ -58,7 +79,7 @@ public class PokemonMoveSetService {
                 .orElseThrow(() -> new EntityNotFoundException("No move set found with id: " + moveSetId));
     }
 
-    public void deleteMoveSetById(@PathVariable Long moveSetId) {
+    public void deleteMoveSetById(Long moveSetId) {
         if (!moveSetRepo.existsById(moveSetId)) {
             throw new EntityNotFoundException("No move set found with id: " + moveSetId);
         }

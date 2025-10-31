@@ -1,10 +1,16 @@
 package nuzlocke.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import jakarta.persistence.EntityNotFoundException;
+import nuzlocke.domain.IdempotencyRecord;
 import nuzlocke.domain.Region;
 import nuzlocke.repository.RegionRepository;
 
@@ -14,10 +20,15 @@ public class RegionService {
     // TODO: GET ROUTES BY REGION??
 
     private final RegionRepository regionRepo;
+    private final IdempotencyRecordService idempotencyService;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    public RegionService(RegionRepository regionRepo) {
+    public RegionService(RegionRepository regionRepo, IdempotencyRecordService idempotencyService,
+            ObjectMapper objectMapper) {
         this.regionRepo = regionRepo;
+        this.idempotencyService = idempotencyService;
+        this.objectMapper = objectMapper;
     }
 
     public Iterable<Region> getAllRegions() {
@@ -29,13 +40,23 @@ public class RegionService {
                 .orElseThrow(() -> new EntityNotFoundException("No region found with id: " + regionId));
     }
 
-    public Region addNewRegion(Region newRegion) {
+    @Transactional
+    public Region addNewRegion(String key, Region newRegion) throws JsonMappingException, JsonProcessingException {
         Region existingRegion = regionRepo.findByRegionName(newRegion.getRegionName());
         if (existingRegion != null) {
             throw new IllegalArgumentException(
                     "Region with name " + existingRegion.getRegionName() + " already exists");
         }
-        return regionRepo.save(newRegion);
+        IdempotencyRecord existingRecord = idempotencyService.fetchOrReserve(key);
+        if (existingRecord != null && existingRecord.getResponse() != null) {
+            return objectMapper.readValue(existingRecord.getResponse(), Region.class);
+        }
+        Region createdRegion = regionRepo.save(newRegion);
+        if (key != null && !key.isBlank()) {
+            idempotencyService.saveRecord(key, objectMapper.writeValueAsString(createdRegion),
+                    HttpStatus.CREATED.value());
+        }
+        return createdRegion;
     }
 
     @Transactional

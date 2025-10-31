@@ -1,12 +1,16 @@
 package nuzlocke.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.EntityNotFoundException;
+import nuzlocke.domain.IdempotencyRecord;
 import nuzlocke.domain.TrainerTeam;
 import nuzlocke.repository.TrainerTeamRepository;
 
@@ -14,30 +18,46 @@ import nuzlocke.repository.TrainerTeamRepository;
 public class TrainerTeamService {
 
     private final TrainerTeamRepository ttRepo;
+    private final IdempotencyRecordService idempotencyService;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    public TrainerTeamService(TrainerTeamRepository ttRepo) {
+    public TrainerTeamService(TrainerTeamRepository ttRepo, IdempotencyRecordService idempotencyService,
+            ObjectMapper objectMapper) {
         this.ttRepo = ttRepo;
+        this.idempotencyService = idempotencyService;
+        this.objectMapper = objectMapper;
     }
 
     public Iterable<TrainerTeam> getAllTrainerTeams() {
         return ttRepo.findAll();
     }
 
-    public TrainerTeam getTrainerTeamById(@PathVariable Long trainerTeamId) {
+    public TrainerTeam getTrainerTeamById(Long trainerTeamId) {
         return ttRepo.findById(trainerTeamId)
                 .orElseThrow(() -> new EntityNotFoundException("No trainer team found with id: " + trainerTeamId));
     }
 
-    public TrainerTeam createNewTrainerTeam(@RequestBody TrainerTeam newTrainerTeam) {
+    @Transactional
+    public TrainerTeam createNewTrainerTeam(String key, TrainerTeam newTrainerTeam)
+            throws JsonMappingException, JsonProcessingException {
         if (newTrainerTeam == null) {
             throw new IllegalArgumentException("Trainer team cannot be empty or null");
         }
-        return ttRepo.save(newTrainerTeam);
+        IdempotencyRecord existingRecord = idempotencyService.fetchOrReserve(key);
+        if (existingRecord != null && existingRecord.getResponse() != null) {
+            return objectMapper.readValue(existingRecord.getResponse(), TrainerTeam.class);
+        }
+        TrainerTeam createdTeam = ttRepo.save(newTrainerTeam);
+        if (key != null && !key.isBlank()) {
+            idempotencyService.saveRecord(key, objectMapper.writeValueAsString(createdTeam),
+                    HttpStatus.CREATED.value());
+        }
+        return createdTeam;
     }
 
     @Transactional
-    public TrainerTeam editTrainerTeam(@PathVariable Long trainerTeamId, @RequestBody TrainerTeam editedTrainerTeam) {
+    public TrainerTeam editTrainerTeam(Long trainerTeamId, TrainerTeam editedTrainerTeam) {
         return ttRepo.findById(trainerTeamId).map(existingTeam -> {
             existingTeam.setTrainer(editedTrainerTeam.getTrainer());
             existingTeam.setPokemons(editedTrainerTeam.getPokemons());
@@ -47,7 +67,7 @@ public class TrainerTeamService {
                 .orElseThrow(() -> new EntityNotFoundException("No trainer team found with id: " + trainerTeamId));
     }
 
-    public void deleteTrainerTeamById(@PathVariable Long trainerTeamId) {
+    public void deleteTrainerTeamById(Long trainerTeamId) {
         if (!ttRepo.existsById(trainerTeamId)) {
             throw new EntityNotFoundException("No trainer team found with id: " + trainerTeamId);
         }

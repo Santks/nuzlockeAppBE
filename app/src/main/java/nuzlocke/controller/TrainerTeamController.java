@@ -14,8 +14,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import nuzlocke.domain.TrainerTeam;
 import nuzlocke.service.TrainerTeamService;
@@ -48,9 +52,11 @@ public class TrainerTeamController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<TrainerTeam> createTrainerTeam(@RequestBody TrainerTeam newTrainerTeam) {
+    public ResponseEntity<TrainerTeam> createTrainerTeam(
+            @RequestHeader(value = "Idempotency-Key", required = false) String key,
+            @RequestBody TrainerTeam newTrainerTeam) throws JsonMappingException, JsonProcessingException {
         log.info("creating new team for trainer: " + newTrainerTeam.getTrainer().getTrainerName());
-        return ResponseEntity.status(HttpStatus.CREATED).body(ttService.createNewTrainerTeam(newTrainerTeam));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ttService.createNewTrainerTeam(key, newTrainerTeam));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

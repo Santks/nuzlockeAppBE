@@ -3,11 +3,17 @@ package nuzlocke.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import jakarta.persistence.EntityNotFoundException;
 import nuzlocke.domain.Game;
+import nuzlocke.domain.IdempotencyRecord;
 import nuzlocke.domain.Region;
 import nuzlocke.domain.Route;
 import nuzlocke.repository.GameRepository;
@@ -16,10 +22,15 @@ import nuzlocke.repository.GameRepository;
 public class GameService {
 
     private final GameRepository gameRepo;
+    private final IdempotencyRecordService idempotencyService;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    public GameService(GameRepository gameRepo) {
+    public GameService(GameRepository gameRepo, IdempotencyRecordService idempotencyService,
+            ObjectMapper objectMapper) {
         this.gameRepo = gameRepo;
+        this.idempotencyService = idempotencyService;
+        this.objectMapper = objectMapper;
 
     }
 
@@ -32,12 +43,22 @@ public class GameService {
                 .orElseThrow(() -> new EntityNotFoundException("No game found with id: " + gameId));
     }
 
-    public Game createNewGame(Game newGame) {
+    @Transactional
+    public Game createNewGame(String key, Game newGame) throws JsonMappingException, JsonProcessingException {
         Game existingGame = gameRepo.findByTitle(newGame.getTitle());
         if (existingGame != null) {
             throw new IllegalArgumentException("Game with title " + existingGame.getTitle() + " already exists");
         }
-        return gameRepo.save(newGame);
+        IdempotencyRecord existing = idempotencyService.fetchOrReserve(key);
+        if (existing != null && existing.getResponse() != null) {
+            return objectMapper.readValue(existing.getResponse(), Game.class);
+        }
+        Game createdGame = gameRepo.save(newGame);
+        if (key != null && !key.isBlank()) {
+            idempotencyService.saveRecord(key, objectMapper.writeValueAsString(createdGame),
+                    HttpStatus.CREATED.value());
+        }
+        return createdGame;
     }
 
     @Transactional

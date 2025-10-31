@@ -1,12 +1,16 @@
 package nuzlocke.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.EntityNotFoundException;
+import nuzlocke.domain.IdempotencyRecord;
 import nuzlocke.domain.Trainer;
 import nuzlocke.repository.TrainerRepository;
 
@@ -16,33 +20,49 @@ public class TrainerService {
     // TODO: FETCH TEAMS BY TRAINER??
 
     private final TrainerRepository trainerRepo;
+    private final IdempotencyRecordService idempotencyService;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    public TrainerService(TrainerRepository trainerRepo) {
+    public TrainerService(TrainerRepository trainerRepo, IdempotencyRecordService idempotencyService,
+            ObjectMapper objectMapper) {
         this.trainerRepo = trainerRepo;
+        this.idempotencyService = idempotencyService;
+        this.objectMapper = objectMapper;
     }
 
     public Iterable<Trainer> getAllTrainers() {
         return trainerRepo.findAll();
     }
 
-    public Trainer getTrainerById(@PathVariable Long trainerId) {
+    public Trainer getTrainerById(Long trainerId) {
         return trainerRepo.findById(trainerId)
                 .orElseThrow(() -> new EntityNotFoundException("No trainer found with id: " + trainerId));
     }
 
-    public Trainer createNewTrainer(@RequestBody Trainer newTrainer) {
+    @Transactional
+    public Trainer createNewTrainer(String key, Trainer newTrainer)
+            throws JsonMappingException, JsonProcessingException {
         Trainer existingTrainer = trainerRepo.findByTrainerName(newTrainer.getTrainerName());
         if (existingTrainer != null && existingTrainer.getTrainerName().equals(newTrainer.getTrainerName())
                 && existingTrainer.getRoute().equals(newTrainer.getRoute())) {
             throw new IllegalArgumentException("Trainer with name: " + existingTrainer.getTrainerName()
                     + " already exists on this route: " + existingTrainer.getRoute().getRouteName());
         }
-        return trainerRepo.save(newTrainer);
+        IdempotencyRecord existingRecord = idempotencyService.fetchOrReserve(key);
+        if (existingRecord != null && existingRecord.getResponse() != null) {
+            return objectMapper.readValue(existingRecord.getResponse(), Trainer.class);
+        }
+        Trainer createdTrainer = trainerRepo.save(newTrainer);
+        if (key != null && !key.isBlank()) {
+            idempotencyService.saveRecord(key, objectMapper.writeValueAsString(createdTrainer),
+                    HttpStatus.CREATED.value());
+        }
+        return createdTrainer;
     }
 
     @Transactional
-    public Trainer editTrainer(@PathVariable Long trainerId, @RequestBody Trainer editedTrainer) {
+    public Trainer editTrainer(Long trainerId, Trainer editedTrainer) {
         return trainerRepo.findById(trainerId).map(existingTrainer -> {
             existingTrainer.setRoute(editedTrainer.getRoute());
             existingTrainer.setTrainerName(editedTrainer.getTrainerName());
@@ -53,7 +73,7 @@ public class TrainerService {
                 .orElseThrow(() -> new EntityNotFoundException("Trainer not found with id" + trainerId));
     }
 
-    public void deleteTrainerById(@PathVariable Long trainerId) {
+    public void deleteTrainerById(Long trainerId) {
         if (!trainerRepo.existsById(trainerId)) {
             throw new EntityNotFoundException("Trainer not found with id: " + trainerId);
         }

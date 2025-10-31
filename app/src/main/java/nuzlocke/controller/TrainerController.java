@@ -14,8 +14,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import nuzlocke.domain.Trainer;
 import nuzlocke.service.TrainerService;
@@ -48,9 +52,10 @@ public class TrainerController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<Trainer> createTrainer(@RequestBody Trainer newTrainer) {
+    public ResponseEntity<Trainer> createTrainer(@RequestHeader(value = "Idempotency-Key", required = false) String key,
+            @RequestBody Trainer newTrainer) throws JsonMappingException, JsonProcessingException {
         log.info("adding trainer with name: " + newTrainer.getTrainerName());
-        return ResponseEntity.status(HttpStatus.CREATED).body(trainerService.createNewTrainer(newTrainer));
+        return ResponseEntity.status(HttpStatus.CREATED).body(trainerService.createNewTrainer(key, newTrainer));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
