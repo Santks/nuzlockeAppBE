@@ -3,7 +3,8 @@ package nuzlocke.domain;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -26,11 +27,12 @@ public class Trainer {
     private String trainerName;
 
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private Set<TrainerTeam> trainerTeams = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "route_id")
-    @JsonIgnore
+    @JsonBackReference
     private Route route;
 
     public Long getTrainerId() {

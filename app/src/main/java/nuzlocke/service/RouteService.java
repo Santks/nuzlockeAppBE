@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.EntityNotFoundException;
 import nuzlocke.domain.IdempotencyRecord;
+import nuzlocke.domain.Region;
 import nuzlocke.domain.Route;
 import nuzlocke.repository.RouteRepository;
 
@@ -21,13 +22,16 @@ public class RouteService {
 
     private final RouteRepository routeRepo;
     private final IdempotencyRecordService idempotencyService;
+    private final RegionService regionService;
     private final ObjectMapper objectMapper;
 
     @Autowired
     public RouteService(RouteRepository routeRepo, IdempotencyRecordService idempotencyService,
+            RegionService regionService,
             ObjectMapper objectMapper) {
         this.routeRepo = routeRepo;
         this.idempotencyService = idempotencyService;
+        this.regionService = regionService;
         this.objectMapper = objectMapper;
     }
 
@@ -48,6 +52,10 @@ public class RouteService {
             throw new IllegalArgumentException("Route with name: " + existingRoute.getRouteName()
                     + " already exists in region: " + existingRoute.getRegion().getRegionName());
         }
+        Long regionId = newRoute.getRegion().getRegionId();
+        Region existingRegion = regionService.getRegionById(regionId);
+        newRoute.setRegion(existingRegion);
+
         IdempotencyRecord existingRecord = idempotencyService.fetchOrReserve(key);
         if (existingRecord != null && existingRecord.getResponse() != null) {
             return objectMapper.readValue(existingRecord.getResponse(), Route.class);

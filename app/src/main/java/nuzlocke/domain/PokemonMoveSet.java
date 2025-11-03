@@ -2,7 +2,7 @@ package nuzlocke.domain;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,7 +38,7 @@ public class PokemonMoveSet {
 
     @ManyToOne
     @JoinColumn(name = "pokemon_id")
-    @JsonIgnore
+    @JsonBackReference
     private Pokemon pokemon;
 
     @Enumerated(EnumType.STRING)

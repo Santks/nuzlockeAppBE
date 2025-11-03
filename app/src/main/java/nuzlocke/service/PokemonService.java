@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import nuzlocke.domain.IdempotencyRecord;
 import nuzlocke.domain.Pokemon;
+import nuzlocke.domain.TrainerTeam;
 import nuzlocke.repository.PokemonRepository;
 
 @Service
@@ -21,13 +22,16 @@ public class PokemonService {
 
     private final PokemonRepository pokemonRepo;
     private final IdempotencyRecordService idempotencyService;
+    private final TrainerTeamService ttService;
     private final ObjectMapper objectMapper;
 
     @Autowired
     public PokemonService(PokemonRepository pokemonRepo, IdempotencyRecordService idempotencyService,
+            TrainerTeamService ttService,
             ObjectMapper objectMapper) {
         this.pokemonRepo = pokemonRepo;
         this.idempotencyService = idempotencyService;
+        this.ttService = ttService;
         this.objectMapper = objectMapper;
     }
 
@@ -47,6 +51,10 @@ public class PokemonService {
         if (existingPokemon != null) {
             throw new IllegalArgumentException("This pokemon already exists.");
         }
+        Long trainerTeamId = newPokemon.getTrainerTeam().getTrainerTeamId();
+        TrainerTeam existingTeam = ttService.getTrainerTeamById(trainerTeamId);
+        newPokemon.setTrainerTeam(existingTeam);
+
         IdempotencyRecord existingRecord = idempotencyService.fetchOrReserve(key);
         if (existingRecord != null && existingRecord.getResponse() != null) {
             return objectMapper.readValue(existingRecord.getResponse(), Pokemon.class);

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.EntityNotFoundException;
 import nuzlocke.domain.IdempotencyRecord;
+import nuzlocke.domain.Trainer;
 import nuzlocke.domain.TrainerTeam;
 import nuzlocke.repository.TrainerTeamRepository;
 
@@ -19,13 +20,16 @@ public class TrainerTeamService {
 
     private final TrainerTeamRepository ttRepo;
     private final IdempotencyRecordService idempotencyService;
+    private final TrainerService trainerService;
     private final ObjectMapper objectMapper;
 
     @Autowired
     public TrainerTeamService(TrainerTeamRepository ttRepo, IdempotencyRecordService idempotencyService,
+            TrainerService trainerService,
             ObjectMapper objectMapper) {
         this.ttRepo = ttRepo;
         this.idempotencyService = idempotencyService;
+        this.trainerService = trainerService;
         this.objectMapper = objectMapper;
     }
 
@@ -44,6 +48,10 @@ public class TrainerTeamService {
         if (newTrainerTeam == null) {
             throw new IllegalArgumentException("Trainer team cannot be empty or null");
         }
+        Long trainerId = newTrainerTeam.getTrainer().getTrainerId();
+        Trainer existingTrainer = trainerService.getTrainerById(trainerId);
+        newTrainerTeam.setTrainer(existingTrainer);
+
         IdempotencyRecord existingRecord = idempotencyService.fetchOrReserve(key);
         if (existingRecord != null && existingRecord.getResponse() != null) {
             return objectMapper.readValue(existingRecord.getResponse(), TrainerTeam.class);

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.EntityNotFoundException;
 import nuzlocke.domain.IdempotencyRecord;
+import nuzlocke.domain.Route;
 import nuzlocke.domain.Trainer;
 import nuzlocke.repository.TrainerRepository;
 
@@ -21,13 +22,16 @@ public class TrainerService {
 
     private final TrainerRepository trainerRepo;
     private final IdempotencyRecordService idempotencyService;
+    private final RouteService routeService;
     private final ObjectMapper objectMapper;
 
     @Autowired
     public TrainerService(TrainerRepository trainerRepo, IdempotencyRecordService idempotencyService,
+            RouteService routeService,
             ObjectMapper objectMapper) {
         this.trainerRepo = trainerRepo;
         this.idempotencyService = idempotencyService;
+        this.routeService = routeService;
         this.objectMapper = objectMapper;
     }
 
@@ -49,6 +53,10 @@ public class TrainerService {
             throw new IllegalArgumentException("Trainer with name: " + existingTrainer.getTrainerName()
                     + " already exists on this route: " + existingTrainer.getRoute().getRouteName());
         }
+        Long routeId = newTrainer.getRoute().getRouteId();
+        Route existingRoute = routeService.getRouteById(routeId);
+        newTrainer.setRoute(existingRoute);
+
         IdempotencyRecord existingRecord = idempotencyService.fetchOrReserve(key);
         if (existingRecord != null && existingRecord.getResponse() != null) {
             return objectMapper.readValue(existingRecord.getResponse(), Trainer.class);

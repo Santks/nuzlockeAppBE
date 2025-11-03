@@ -50,7 +50,7 @@ public class WebSecurityConfig {
                 .headers(headers -> headers.frameOptions((frameOpts) -> frameOpts.disable()))
                 .authorizeHttpRequests((reqs) -> reqs
                         .requestMatchers("/ping", "/games", "/regions", "/routes", "/trainers", "/pokemon",
-                                "/trainerteams", "/error", "/h2-console/**",
+                                "/trainerteams", "/movesets", "/error", "/h2-console/**",
                                 "/auth/register",
                                 "/auth/signin")
                         .permitAll()

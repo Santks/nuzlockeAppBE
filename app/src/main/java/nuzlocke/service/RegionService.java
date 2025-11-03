@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.EntityNotFoundException;
+import nuzlocke.domain.Game;
 import nuzlocke.domain.IdempotencyRecord;
 import nuzlocke.domain.Region;
 import nuzlocke.repository.RegionRepository;
@@ -21,13 +22,16 @@ public class RegionService {
 
     private final RegionRepository regionRepo;
     private final IdempotencyRecordService idempotencyService;
+    private final GameService gameService;
     private final ObjectMapper objectMapper;
 
     @Autowired
     public RegionService(RegionRepository regionRepo, IdempotencyRecordService idempotencyService,
+            GameService gameService,
             ObjectMapper objectMapper) {
         this.regionRepo = regionRepo;
         this.idempotencyService = idempotencyService;
+        this.gameService = gameService;
         this.objectMapper = objectMapper;
     }
 
@@ -47,6 +51,10 @@ public class RegionService {
             throw new IllegalArgumentException(
                     "Region with name " + existingRegion.getRegionName() + " already exists");
         }
+        Long gameId = newRegion.getGame().getGameId();
+        Game existingGame = gameService.getGameById(gameId);
+        newRegion.setGame(existingGame);
+
         IdempotencyRecord existingRecord = idempotencyService.fetchOrReserve(key);
         if (existingRecord != null && existingRecord.getResponse() != null) {
             return objectMapper.readValue(existingRecord.getResponse(), Region.class);
