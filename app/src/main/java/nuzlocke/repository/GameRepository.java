@@ -6,4 +6,6 @@ import nuzlocke.domain.Game;
 
 public interface GameRepository extends CrudRepository<Game, Long> {
 
+    Game findByTitle(String title);
+
 }

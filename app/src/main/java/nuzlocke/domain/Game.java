@@ -3,6 +3,9 @@ package nuzlocke.domain;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -32,8 +35,9 @@ public class Game {
     @NotNull
     private int gameGeneration;
 
-    @OneToMany(mappedBy = "game", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "game", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Size(max = 2)
+    @JsonManagedReference
     private List<Region> regions = new ArrayList<>();
 
     public List<Region> getRegions() {

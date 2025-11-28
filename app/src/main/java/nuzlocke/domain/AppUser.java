@@ -1,5 +1,7 @@
 package nuzlocke.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -24,6 +26,7 @@ public class AppUser {
 
     @NotBlank
     @Column(name = "Password", nullable = false)
+    @JsonIgnore
     private String passwordHash;
 
     @NotBlank
@@ -33,10 +36,12 @@ public class AppUser {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "User_Role", nullable = false)
+    @JsonIgnore
     private AppUserRole userRole;
 
     @NotBlank
     @Column(name = "Salt", unique = true, nullable = false)
+    @JsonIgnore
     private String salt;
 
     public Long getAppUserId() {
