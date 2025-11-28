@@ -1,5 +1,6 @@
 package nuzlocke.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,18 +18,22 @@ import nuzlocke.domain.IdempotencyRecord;
 import nuzlocke.domain.Region;
 import nuzlocke.domain.Route;
 import nuzlocke.repository.GameRepository;
+import nuzlocke.repository.RegionRepository;
 
 @Service
 public class GameService {
 
     private final GameRepository gameRepo;
+    private final RegionRepository regionRepo;
     private final IdempotencyRecordService idempotencyService;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public GameService(GameRepository gameRepo, IdempotencyRecordService idempotencyService,
+    public GameService(GameRepository gameRepo, RegionRepository regionRepo,
+            IdempotencyRecordService idempotencyService,
             ObjectMapper objectMapper) {
         this.gameRepo = gameRepo;
+        this.regionRepo = regionRepo;
         this.idempotencyService = idempotencyService;
         this.objectMapper = objectMapper;
 
@@ -49,6 +54,14 @@ public class GameService {
         if (existingGame != null) {
             throw new IllegalArgumentException("Game with title " + existingGame.getTitle() + " already exists");
         }
+        Long regionId = newGame.getRegions().get(0).getRegionId();
+        if (regionId != null) {
+            Region existingRegion = regionRepo.findById(regionId)
+                    .orElseThrow(() -> new EntityNotFoundException("No region found with id: " + regionId));
+            List<Region> regions = new ArrayList<>();
+            regions.add(existingRegion);
+            newGame.setRegions(regions);
+        }
         IdempotencyRecord existing = idempotencyService.fetchOrReserve(key);
         if (existing != null && existing.getResponse() != null) {
             return objectMapper.readValue(existing.getResponse(), Game.class);
@@ -68,9 +81,17 @@ public class GameService {
             existingGame.setDeveloper(editedGame.getDeveloper());
             existingGame.setDescription(editedGame.getDescription());
             existingGame.setGameGeneration(editedGame.getGameGeneration());
-            existingGame.setRegions(editedGame.getRegions());
+            List<Region> regions = new ArrayList<>();
+            Long regionId = editedGame.getRegions().get(0).getRegionId();
+            if (regionId != null) {
+                Region existingRegion = regionRepo.findById(regionId)
+                        .orElseThrow(() -> new EntityNotFoundException("No region found with id: " + regionId));
+                regions.add(existingRegion);
+            }
+            existingGame.setRegions(regions);
+            Game savedGame = gameRepo.save(existingGame);
 
-            return gameRepo.save(existingGame);
+            return savedGame;
         })
                 .orElseThrow(() -> new EntityNotFoundException("No game found with id: " + gameId));
     }

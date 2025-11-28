@@ -33,8 +33,7 @@ public class AppUserService {
 
     public AppUser createUser(AppUser newUser) {
         AppUser existingUser = appUserRepository.findByUsername(newUser.getUsername());
-        if (existingUser != null && newUser.getUsername().equals(existingUser.getUsername())
-                || newUser.getEmailString().equals(existingUser.getEmailString())) {
+        if (existingUser != null && newUser.getUsername().equals(existingUser.getUsername())) {
             throw new IllegalArgumentException("Username or email already taken");
         }
         String pwdSalt = SaltGenerator.generateSalt();

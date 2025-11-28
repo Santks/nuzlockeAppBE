@@ -1,7 +1,9 @@
 package nuzlocke.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 
 @Entity
 public class IdempotencyRecord {
@@ -9,6 +11,8 @@ public class IdempotencyRecord {
     @Id
     private String idempotencyKey;
 
+    @Lob
+    @Column(columnDefinition = "CLOB")
     private String response;
 
     private int statusCode;
